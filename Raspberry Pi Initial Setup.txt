@@ -104,7 +104,6 @@ sudo systemctl unmask avahi-daemon.socket
 sudo systemctl enable --now avahi-daemon
 
 
-
 8 - Disable Wi-Fi adapter (optional)
 ------------------------------------
 sudo nano /boot/config.txt

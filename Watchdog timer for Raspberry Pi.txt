@@ -89,9 +89,11 @@ Expected result: The Pi will freeze and then automatically reboot after about 60
 - It runs silently in the background with no user intervention needed
 
 
-I find this possibility extremely useful as I rarely have physical access to my Raspberry Pis, and any source of crash causing interruption of services would create significant inconveniences for me. This is clearly a hidden gem, and it is relatively difficult to find documentation (RIP the poor documentation from the Raspberry Pi Foundation, which scarcely mentions the watchdog capability of its devices) or information on the internet.
+I find this possibility extremely useful as I rarely have physical access to my Raspberry Pis, and any source of crash causing interruption of services would create significant inconveniences for me.
+This is clearly a hidden gem, and it is relatively difficult to find documentation (RIP the poor documentation from the Raspberry Pi Foundation, which scarcely mentions the watchdog capability of its devices) or information on the internet.
 
-================================================================================================
+================================================================================================================================================================================================
 
 
 This loyal watchdog will take care of your Pi and make sure it is indefinitely petted so it reboots when needed. :D
+

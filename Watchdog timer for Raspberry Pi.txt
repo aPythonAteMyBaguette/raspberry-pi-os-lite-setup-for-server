@@ -1,7 +1,8 @@
 Raspberry Pi Watchdog
 =====================
 
-Configure a Raspberry Pi running Raspberry Pi OS so that if the system freezes, the watchdog will automatically restart the device using systemd and the built-in hardware watchdog (I confirm that it at least works on Raspberry Pi 4B and Raspberry Pi Zero 2W but should be fine for other Raspberry Pi models).
+Configure a Raspberry Pi running Raspberry Pi OS so that if the system freezes, the watchdog will automatically restart the device using systemd and the built-in hardware watchdog.
+(I confirm that it at least works on Raspberry Pi 4B and Raspberry Pi Zero 2W but should be fine for other Raspberry Pi models).
 
 1 - Prerequisites
 -----------------
@@ -96,4 +97,5 @@ This is clearly a hidden gem, and it is relatively difficult to find documentati
 
 
 This loyal watchdog will take care of your Pi and make sure it is indefinitely petted so it reboots when needed. :D
+
 

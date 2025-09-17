@@ -179,3 +179,44 @@ vnstat
 
 # For real-time network monitoring
 vnstat -l
+
+13 - Setup SSH Key Authentication (optional, more secure than password)
+---------------------------------------------------------
+# Generate a key pair on a machine other than your server (ed25519 recommended):
+ssh-keygen -t ed25519
+
+	--> you should be asked which filename you want for the key. Be sure to enter the absolute path for the key, for example /home/username/.ssh/id_KEYNAMEXXXX
+
+	--> you will also be asked if you want to add a passphrase for your key to store it more securely (but you will have to type the passphrase once per session then)
+
+# Copy public key to the server from the shell:
+ssh-copy-id user@server
+
+# Copy public key to the server from Windows PowerShell:
+type $env:USERPROFILE\.ssh\id_KEYNAMEXXXX.pub | ssh user@server "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+
+# Test login with key (on Windows):
+ssh -i $env:USERPROFILE\.ssh\id_KEYNAMEXXXX user@server
+
+# Test login with key (on Linux):
+ssh -i ~\.ssh\id_KEYNAMEXXXXX user@server
+
+# Setup SSH config (~/.ssh/config)
+Host hostnameXXXX
+    HostName 192.168.XXXX (or hostname.local)
+    User usernameXXXX
+    IdentityFile "~/.ssh/id_KEYNAMEXXXX"
+
+# Force key authentication (only) on server:
+**CAREFUL** It is very IMPORTANT to try accessing the server with the ssh key before going further ****
+
+sudo nano /etc/ssh/sshd_config
+
+# Ensure these lines are uncommented or added:
+PubkeyAuthentication yes
+PasswordAuthentication no
+
+sudo systemctl restart ssh
+---------
+
+Now you just type ssh usernameXXXX in a shell to login without password but with a secure ssh key :)

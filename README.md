@@ -8,3 +8,8 @@ I am far from being an expert, as IT is currently only a hobby for me, and I am 
 In Raspberry Pi Initial Setup Guide.txt
 ================================
 This document contains all the necessary steps to perform the initial setup of your server according to basic security best practices.
+
+
+Watchdog timer for Raspberry Pi.txt
+================================
+This document provides detailed instructions to configure the built-in hardware watchdog on a Raspberry Pi using systemd, ensuring automatic reboot in case the system freezes. It is designed to improve reliability and minimize downtime, especially for remote or unattended setups.

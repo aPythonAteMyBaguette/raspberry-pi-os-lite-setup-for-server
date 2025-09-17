@@ -1,0 +1,97 @@
+Raspberry Pi Watchdog
+=====================
+
+Configure a Raspberry Pi running Raspberry Pi OS so that if the system freezes, the watchdog will automatically restart the device using systemd and the built-in hardware watchdog (I confirm that it at least works on Raspberry Pi 4B and Raspberry Pi Zero 2W but should be fine for other Raspberry Pi models).
+
+1 - Prerequisites
+-----------------
+- Raspberry Pi (4, Zero 2, etc.)
+- Raspberry Pi OS
+- Sudo access is mandatory
+- Kernel with bcm2835_wdt module support (included by default)
+
+
+2 - Configuration Steps
+-----------------------
+#Enable the hardware watchdog at startup:
+echo bcm2835_wdt | sudo tee -a /etc/modules
+sudo modprobe bcm2835_wdt
+
+#Configure systemd to enable the watchdog:
+sudo nano /etc/systemd/system.conf
+
+# Add or modify the following line:
+RuntimeWatchdogSec=30
+
+# Reload systemd and reboot:
+sudo systemctl daemon-reexec
+sudo reboot
+
+# (Optional but recommended) Disable possible interference:
+Disable the traditional watchdog service:
+sudo systemctl disable --now watchdog
+
+#Disable wd_keepalive:
+sudo nano /etc/default/watchdog
+->Write:
+run_wd_keepalive=0
+
+
+3 - Verification
+----------------
+# Check that systemd has enabled the watchdog:
+systemctl show -p RuntimeWatchdogUSec
+
+-->Expected result:
+RuntimeWatchdogUSec=30000000  # (30 seconds)
+
+# Check that the module is loaded:
+dmesg | grep -i watchdog
+
+-->Expected output:
+Watchdog running with a hardware timeout of 30s.
+
+**Important note**
+
+Even if you set RuntimeWatchdogSec=30, the actual timeout will probably be around 60 seconds or even 15sec in my case.
+This is a hardware limitation of the bcm2835_wdt module, which often has hard-coded values.
+
+
+4 - Test automatic reboot
+-------------------------
+You can simulate a system crash to verify that the watchdog reboots the device correctly. Create this script:
+
+nano test_watchdog.sh
+
+# Paste the following content:
+
+```
+#!/bin/bash
+echo "Crash-test in 10 seconds! Press Ctrl+C to cancel."
+for i in {10..1}; do echo "$i..."; sleep 1; done
+echo c | sudo tee /proc/sysrq-trigger > /dev/null
+
+```
+
+# Make it executable and run:
+chmod +x test_watchdog.sh
+./test_watchdog.sh
+
+Expected result: The Pi will freeze and then automatically reboot after about 60 seconds or less.
+
+
+5 - Conclusion
+--------------
+
+- No manual process monitoring required
+- No complex configuration
+- Reliable automatic reboot in case of system freeze
+- It runs silently in the background with no user intervention needed
+
+
+I find this possibility extremely useful as I rarely have physical access to my Raspberry Pis, and any source of crash causing interruption of services would create significant inconveniences for me. This is clearly a hidden gem, and it is relatively difficult to find documentation (RIP the poor documentation from the Raspberry Pi Foundation, which scarcely mentions the watchdog capability of its devices) or information on the internet.
+
+================================================================================================
+
+
+This loyal watchdog will take care of your Pi and make sure it is indefinitely petted so it reboots when needed. :D

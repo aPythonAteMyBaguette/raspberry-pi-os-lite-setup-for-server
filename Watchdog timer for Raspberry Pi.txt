@@ -96,7 +96,8 @@ This is clearly a hidden gem, and it is relatively difficult to find documentati
 ================================================================================================================================================================================================
 
 
-This loyal watchdog will take care of your Pi and make sure it is indefinitely petted so it reboots when needed. :D            --- Github: aPythonAteMyBaguette
+This loyal watchdog will take care of your Pi and make sure it is indefinitely petted so it reboots when needed. :D        --- Github: aPythonAteMyBaguette
+
 
 
 

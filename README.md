@@ -5,7 +5,7 @@ I am far from being an expert, as IT is currently only a hobby for me, and I am 
 
 
 
-In Raspberry Pi Initial Setup Guide.txt
+Raspberry Pi Initial Setup Guide.txt
 ================================
 This document contains all the necessary steps to perform the initial setup of your server according to basic security best practices.
 

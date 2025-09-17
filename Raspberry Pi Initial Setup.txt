@@ -1,113 +1,164 @@
 Raspberry Pi Initial Setup Guide
 ================================
 
+
 1 - Create new sudo user (adjust username )
-------------------------
+-------------------------------------------
+sudo adduser username
+
+# Or if the command above raise an error because of the username you chose, try : 
 sudo adduser --allow-bad-names username
+
+--> adduser may prompt for user info, I suggest you not write anything by just pressing enter for each field, defaults is usually fine ;)
+
+# (Optional) Add your username to the sudoer group 
 sudo usermod -aG sudo username
+
 # Check if sudo user
 groups username
+
 
 2 - Delete pi user and all associated folders
 ---------------------------------------------
 sudo deluser --remove-home pi
+
 # On new username, test if sudo works by:
 sudo whoami  # should return 'root'
+
 # Check if pi folders deleted
 ls /home
+
 # Check if pi user deleted
 sudo find / -user pi
+
+# Check if pi crontab still exists
+sudo crontab -u pi -l
+
 
 3 - Update the OS
 -----------------
 sudo apt update && sudo apt upgrade -y
 sudo apt autoremove
 
+
 4 - Disable SSH for pi user (even if deleted)
 ---------------------------------------------
 sudo nano /etc/ssh/sshd_config
-# Add the line:
+
+# Add the line (ensure DenyUsers pi is placer after any AllowUsers directives to avoid conflicts)
 DenyUsers pi
+
 sudo systemctl restart ssh
+
 
 5 - Disable SSH for root user
 -----------------------------
 sudo nano /etc/ssh/sshd_config
+
 # Find and set:
 PermitRootLogin no
+
 sudo systemctl restart ssh
+
 
 6 - Install and configure UFW
 -----------------------------
 sudo apt update
 sudo apt install ufw
+
+# Set default rules for UFW
 sudo ufw default deny incoming
 sudo ufw default allow outgoing
-# Allow all connections from local network (adjust subnet, here it is 192.168.XX.0/24)
-sudo ufw allow from 192.168.XX.0/24
-# Or limit SSH connections from local network to reduce attacks
-sudo ufw limit proto tcp from 192.168.XX.0/24 to any port 22
-# Enable UFW with automatic confirmation
-echo "y" | sudo ufw enable
-sudo ufw logging medium  # or LOW
-sudo ufw status verbose  # optional to verify
 
-6bis - Disable Avahi (mDNS for LAN, optional)
----------------------------------------------
+# (Optional) Allow all connections from local network (adjust subnet, here it is 192.168.XX.0/24) 
+sudo ufw allow from 192.168.XX.0/24
+
+# Or limit to SSH connections from local network to reduce possible attacks 
+**CAREFUL** It is mandatory to allow ssh before enabling UFW otherwise, SSH connection might be broken (essential for headless configurations) ****
+sudo ufw limit proto tcp from 192.168.XX.0/24 to any port 22
+
+# Enable UFW with automatic confirmation
+sudo ufw enable
+
+# Enable logs to medium or low (useful for reviewing connections and if you use fail2ban)
+sudo ufw logging medium
+
+# optional to verify the configuration
+sudo ufw status verbose
+
+
+7 - Disable Avahi (mDNS for LAN, optional - disabling the service might slightly ehance security and reduce overhead)
+---------------------------------------------------------------------------------------------------------------------
 sudo systemctl disable --now avahi-daemon
 sudo systemctl disable --now avahi-daemon.socket
 sudo systemctl mask avahi-daemon
+sudo systemctl mask avahi-daemon.socket
+
 # Check status:
 systemctl is-enabled avahi-daemon avahi-daemon.socket
 systemctl is-active avahi-daemon avahi-daemon.socket
-# To enable later if needed:
+
+# To enable later (if needed):
+sudo systemctl unmask avahi-daemon
+sudo systemctl unmask avahi-daemon.socket
 sudo systemctl enable --now avahi-daemon
 
-7 - Disable Wi-Fi adapter (optional)
+
+
+8 - Disable Wi-Fi adapter (optional)
 ------------------------------------
 sudo nano /boot/config.txt
+
 # Add the line:
 dtoverlay=disable-wifi
+
 sudo reboot
 
-# Temporary Wi-Fi disable (until reboot):
+# Or to temporary disable Wi-Fi (until reboot):
 sudo ifconfig wlan0 down
 
-# Re-enable Wi-Fi:
+# Re-enable Wi-Fi (until reboot):
 sudo ifconfig wlan0 up
 
-8 - Enable automatic system updates
+
+9 - Enable automatic system updates
 -----------------------------------
 sudo apt update
 sudo apt install unattended-upgrades
+
+# Enabling unattended-upgrades
 sudo dpkg-reconfigure --priority=low unattended-upgrades  # enable and press yes
 
 # Configure automatic upgrades:
 sudo nano /etc/apt/apt.conf.d/50unattended-upgrades
+
 # Ensure Allowed Origins include (to be adjusted according to your preferences):
-Unattended-Upgrade::Allowed-Origins {
-  "${distro_id}:${distro_codename}-security";
-  "${distro_id}:${distro_codename}-updates";
-};
+	Unattended-Upgrade::Allowed-Origins {
+	  "${distro_id}:${distro_codename}-security";
+	  "${distro_id}:${distro_codename}-updates";
+	};
 
 # Optional automatic reboot and cleanup (to be adjusted according to your preferences):
-Unattended-Upgrade::Automatic-Reboot "true";
-Unattended-Upgrade::Automatic-Reboot-Time "04:00";
-Unattended-Upgrade::Remove-Unused-Dependencies "true";
-Unattended-Upgrade::AutoFixInterruptedDpkg "true";
-Unattended-Upgrade::MinimalSteps "true";
-Unattended-Upgrade::SyslogEnable "true";
-Unattended-Upgrade::Verbose "true";
-Unattended-Upgrade::Automatic-Reboot-WithUsers "true";
+	Unattended-Upgrade::Automatic-Reboot "true";
+	Unattended-Upgrade::Automatic-Reboot-Time "04:00";
+	Unattended-Upgrade::Remove-Unused-Dependencies "true";
+	Unattended-Upgrade::AutoFixInterruptedDpkg "true";
+	Unattended-Upgrade::MinimalSteps "true";
+	Unattended-Upgrade::SyslogEnable "true";
+	Unattended-Upgrade::Verbose "true";
+	Unattended-Upgrade::Automatic-Reboot-WithUsers "true";
 
 # Set update frequency (to be adjusted according to your preferences):
 sudo nano /etc/apt/apt.conf.d/20auto-upgrades
-# Set:
-APT::Periodic::Update-Package-Lists "1";
-APT::Periodic::Download-Upgradeable-Packages "1";
-APT::Periodic::Unattended-Upgrade "1";
-APT::Periodic::AutocleanInterval "7";
 
+# Set:
+	APT::Periodic::Update-Package-Lists "1";
+	APT::Periodic::Download-Upgradeable-Packages "1";
+	APT::Periodic::Unattended-Upgrade "1";
+	APT::Periodic::AutocleanInterval "7";
+
+	--> These configuration files require exact syntax and spacing; errors may cause updates to fail.
+	
 # Check timers:
 systemctl list-timers '*apt*'
 
@@ -120,8 +171,9 @@ cat /var/run/reboot-required || true
 # View upgrade logs:
 journalctl -u unattended-upgrades -n 200 --no-pager
 
-9 - Install ClamAV Antivirus (optional)
----------------------------------------
+
+10 - Install ClamAV Antivirus (optional)
+----------------------------------------
 sudo apt install clamav clamav-daemon
 sudo freshclam
 
@@ -137,23 +189,31 @@ clamscan -r /
 # Scan specific file or folder:
 clamscan /path/to/file_or_folder
 
-10 - Set automatic reboot periodically (optional)
+# Update the virus database regularly:
+sudo freshclam 
+
+	--> you could also automate this with a cron job or systemd timer
+
+
+11 - Set automatic reboot periodically (optional)
 -------------------------------------------------
 sudo crontab -e
 # Add the line:
-0 5 * * 2,5 /sbin/reboot
+30 4 * * 2,5 /sbin/reboot
 # Explanation:
-# 0 5 - at 5:00 AM
+# 30 4 - at 4:30 AM
 # * * - every day of the month
 # 2,5 - Tuesday(2) and Friday(5)
 
-11 - Watchdog Timer (optional)
-------------------------------
-# Raspberry Pi hardware watchdog to auto reboot on crash
-# See dedicated documentation folder for setup instructions
 
-12 - Optional Monitoring Tools Installation
--------------------------------------
+12 - Watchdog Timer (optional) - Useful to handle automatic reboot when major system freeze
+-------------------------------------------------------------------------------------------
+# Raspberry Pi hardware watchdog to auto reboot on crash
+# See the dedicated documentation file 'Watchdog timer' in the repo for enabling this unknown gem! ^_^
+
+
+13 - Optional Monitoring Tools Installation
+-------------------------------------------
 
 # Install htop for interactive process monitoring
 sudo apt install htop
@@ -180,8 +240,9 @@ vnstat
 # For real-time network monitoring
 vnstat -l
 
-13 - Setup SSH Key Authentication (optional, more secure than password)
----------------------------------------------------------
+
+14 - Setup SSH Key Authentication (optional, more secure than password)
+-----------------------------------------------------------------------
 # Generate a key pair on a machine other than your server (ed25519 recommended):
 ssh-keygen -t ed25519
 
@@ -199,13 +260,13 @@ type $env:USERPROFILE\.ssh\id_KEYNAMEXXXX.pub | ssh user@server "mkdir -p ~/.ssh
 ssh -i $env:USERPROFILE\.ssh\id_KEYNAMEXXXX user@server
 
 # Test login with key (on Linux):
-ssh -i ~\.ssh\id_KEYNAMEXXXXX user@server
+ssh -i ~/.ssh/id_KEYNAMEXXXXX user@server
 
 # Setup SSH config (~/.ssh/config)
 Host hostnameXXXX
     HostName 192.168.XXXX (or hostname.local)
     User usernameXXXX
-    IdentityFile "~/.ssh/id_KEYNAMEXXXX"
+    IdentityFile ~/.ssh/id_KEYNAMEXXXX
 
 # Force key authentication (only) on server:
 **CAREFUL** It is very IMPORTANT to try accessing the server with the ssh key before going further ****
@@ -217,6 +278,9 @@ PubkeyAuthentication yes
 PasswordAuthentication no
 
 sudo systemctl restart ssh
----------
 
-Now you just type ssh usernameXXXX in a shell to login without password but with a secure ssh key :)
+================================================================================================================================================================================================
+
+Now you just type ssh usernameXXXX in a shell to login without password but with a secure ssh key. 
+
+Have fun and be creative with your server :)		--- Github: aPythonAteMyBaguette

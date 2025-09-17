@@ -13,3 +13,7 @@ This document contains all the necessary steps to perform the initial setup of y
 Watchdog timer for Raspberry Pi.txt
 ================================
 This document provides detailed instructions to configure the built-in hardware watchdog on a Raspberry Pi using systemd, ensuring automatic reboot in case the system freezes. It is designed to improve reliability and minimize downtime, especially for remote or unattended setups.
+
+
+## License
+These notes are licensed under the [Creative Commons Attribution 4.0 International License](LICENSE).

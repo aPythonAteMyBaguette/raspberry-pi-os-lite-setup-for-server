@@ -250,7 +250,7 @@ ssh-keygen -t ed25519
 	--> you will also be asked if you want to add a passphrase for your key to store it more securely (but you will have to type the passphrase once per session then)
 
 # Copy public key to the server from the shell:
-ssh-copy-id user@server
+ssh-copy-id -i ~/.ssh/id_KEYNAMEXXXX.pub user@host
 
 # Copy public key to the server from Windows PowerShell:
 type $env:USERPROFILE\.ssh\id_KEYNAMEXXXX.pub | ssh user@server "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
